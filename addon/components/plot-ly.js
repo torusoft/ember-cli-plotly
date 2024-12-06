@@ -1,5 +1,6 @@
 import Component from '@ember/component';
 import EmberObject, { computed } from '@ember/object';
+import Ember from 'ember';
 import { observes } from '@ember-decorators/object';
 import { debounce, scheduleOnce } from '@ember/runloop';
 import { buildWaiter } from '@ember/test-waiters';
