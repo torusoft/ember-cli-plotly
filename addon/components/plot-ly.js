@@ -2,7 +2,7 @@ import Component from '@ember/component';
 import EmberObject, { computed } from '@ember/object';
 import Ember from 'ember';
 import { observes } from '@ember-decorators/object';
-import { debounce, scheduleOnce } from '@ember/runloop';
+import { debounce, scheduleOnce, next } from '@ember/runloop';
 import { buildWaiter } from '@ember/test-waiters';
 const waiter = buildWaiter('ember-cli-plotly:component-loaded');
 
@@ -111,6 +111,10 @@ export default class PlotlyComponent extends Component {
     log('onPlotlyEvent fired (does nothing since it was not overridden)', eventName, ...args);
   }
 
+  onNewPlot(plotlyRef, ...args) {
+
+  }
+
   // Lifecycle hooks
   didInsertElement() {
     log('didInsertElement called -- will call _newPlot');
@@ -153,7 +157,7 @@ export default class PlotlyComponent extends Component {
   @observes('chartData.triggerUpdate')
   _triggerUpdate() {
     log(`_triggerUpdate observer firing`);
-    scheduleOnce('render', this, '_react');
+    next(this, this._react);
   }
 
 
@@ -234,9 +238,11 @@ export default class PlotlyComponent extends Component {
       const { chartData, chartLayout, chartConfig } = this._parameters;
       this._unbindPlotlyEventListeners();
       log('About to call Plotly.newPlot');
+      let self = this;
       Plotly.newPlot(id, chartData, chartLayout, chartConfig).then(() => {
         log('newPlot finished');
         this._bindPlotlyEventListeners();
+        this.onNewPlot(self);
         // TODO: Hook
       }).catch((e, ...args) => {
         warn(`Plotly.newPlot resulted in rejected promise`, e, ...args);
@@ -257,7 +263,6 @@ export default class PlotlyComponent extends Component {
       log('About to call Plotly.react', chartData, chartLayout, chartConfig);
       Plotly.react(id, chartData, chartLayout, chartConfig).then(() => {
         log('react finished');
-        // TODO: Hook
       }).catch((e, ...args) => {
         warn(`Plotly.react resulted in rejected promise`, e, ...args);
       });
